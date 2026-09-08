@@ -1,0 +1,11 @@
+# This repository holds release notes, not binaries: the installers are
+# attached to each GitHub Release by CI and are never committed here.
+*.AppImage
+*.deb
+*.dmg
+*.exe
+*.tar.gz
+*.zip
+SHA256SUMS
+
+.DS_Store
