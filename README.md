@@ -59,17 +59,19 @@ That is what makes Cohort usable where plain screen sharing is not allowed.
 
 ## How it works
 
-- **A room** is one piece of work: a short brief, the people in it, their
-  artifacts, and a conversation. You invite people, or let them ask to join.
+- **A space** is a team or group: its people, and its rooms. You join one
+  by an invite link, and nobody outside it sees anything in it.
+- **A room** is one piece of work inside a space: a short brief, the people
+  in it, their artifacts, and a conversation. You invite people, or let them
+  ask to join.
 - **Closing a room writes a record** of what was found and what was done,
   and credits the people who contributed.
 
-Cohort runs on your own server: one machine runs the hub and everyone's
-desktop app connects to it. A team, a company, or a vendor for its customers
-can each run their own. The hub keeps the rooms and the conversation, and
-passes files and windows through without storing them. An optional AI
-assistant helps draft a new room's brief, on your machine, with the model
-provider you choose.
+Every app talks to Cohort's hub, the server that keeps the spaces, rooms and
+conversations and passes files and windows through without storing them. A
+team, a company, or a vendor for its customers can also run its own (see the
+end of this page). An optional AI assistant helps draft a new room's brief,
+on your machine, with the model provider you choose.
 
 ## About this repository
 
@@ -82,59 +84,49 @@ here is source code.
 
 | Platform | File | Notes |
 |----------|------|-------|
-| macOS | `Cohort_<version>_universal.dmg` | Intel and Apple Silicon. Drag to Applications. |
+| macOS | `Cohort_<version>_universal.dmg` | Intel and Apple Silicon, macOS 11 or later. |
 | macOS | `Cohort_<version>_universal.zip` | The same app, zipped, for scripted installs. |
-| Linux | `Cohort_<version>_amd64.AppImage` | Portable, runs on most distributions. |
-| Linux | `Cohort_<version>_amd64.deb` | Debian and Ubuntu. |
-| Windows | `Cohort_<version>_x64-setup.exe` | Per-user installer, no administrator prompt. |
-| Hub | `cohort-hub_<version>_linux-x86_64.tar.gz` | The server. One machine runs it; every app connects to it. |
+| Windows | `Cohort_<version>_x64-setup.exe` | Windows 10 or 11. Installs for you alone, no administrator prompt. |
+| Linux | `Cohort_<version>_amd64.deb` | Ubuntu 22.04 or later, and Debian. |
+| Hub | `cohort-hub_<version>_linux-x86_64.tar.gz` | Only if you run your own server; see the end of this page. |
 | All | `SHA256SUMS` | Checksums for every file above. |
 
 ## Install
 
-**macOS.** Open the `.dmg` and drag Cohort to Applications. If the build is not
-notarized, macOS quarantines it: right-click Cohort -> Open -> Open the first
-time, or run `xattr -cr /Applications/Cohort.app`. Sharing a window asks for
-Screen Recording the first time you use it; macOS shows that prompt itself.
+**macOS.** Open the `.dmg` and drag Cohort to Applications, then open it
+from there. The first time you share a window, macOS asks for Screen
+Recording: allow Cohort in System Settings -> Privacy & Security -> Screen
+Recording, then quit and reopen Cohort. macOS only applies that permission
+to a fresh start.
+
+**Windows.** Run the setup `.exe`. The installer is not signed yet, so
+Windows shows "Windows protected your PC": click **More info**, then **Run
+anyway**. It installs for you alone and fetches Microsoft's WebView2 if the
+machine does not have it, so stay online the first time. On a Windows 11
+machine with Smart App Control turned on, Windows refuses unsigned
+installers altogether; Cohort cannot be installed there until it is signed.
 
 **Linux.**
 
     sudo apt install ./Cohort_<version>_amd64.deb
 
-or, for the portable build:
-
-    chmod +x Cohort_<version>_amd64.AppImage
-    ./Cohort_<version>_amd64.AppImage
-
-Sharing a window needs `wmctrl` and `imagemagick`. The `.deb` installs both. An
-AppImage cannot declare dependencies, so install them yourself if you intend to
-share a window:
-
-    sudo apt install wmctrl imagemagick
-
-**Windows.** Run the setup `.exe`. It installs for the current user only and
-fetches the WebView2 runtime if the machine does not have it. Until the
-installer is signed, SmartScreen warns on first run: More info -> Run anyway.
+Then open Cohort from your applications. Window sharing works on an X11
+session. On Wayland (Ubuntu's default) only some windows can be shared; to
+share any window, choose "Ubuntu on Xorg" from the gear on the login screen.
 
 ## First run
 
-Cohort needs a hub to talk to - one server every machine can reach. Unpack the
-hub tarball on that machine and run it:
+1. Open Cohort and register: an email, a username and a password. That is
+   your account on every machine you use.
+2. You land on your spaces. A space is your team or group: everything in
+   Cohort happens inside one. Create a space, or paste an invite link
+   someone sent you into **Join with a link**.
+3. Inside a space, open a room for a piece of work and bring people in, or
+   open one someone else has opened. Share from the room: a folder, a
+   window, an AI agent session.
 
-    tar -xzf cohort-hub_<version>_linux-x86_64.tar.gz
-    cd cohort-hub_<version>_linux-x86_64
-    COHORT_BIND=0.0.0.0:7400 COHORT_NAME='Payments team' ./cohort-hub
-
-`COHORT_BIND=0.0.0.0:7400` is what lets other machines reach it; the default
-binds to localhost only. `COHORT_NAME` is what the apps call this hub. The
-tarball's `README.txt` lists the rest of the environment variables.
-
-Then open the app. It asks for the hub URL (`http://<hub-host>:7400`), then
-lets you register (email, username, password) or sign in. The hub ships with
-no accounts and no data.
-
-To try it, open a room with the + button on one machine, and on another,
-signed in as someone else, open that room and ask to join.
+To invite someone, open the space's menu (the space's name at the top
+left) and choose **Copy invite link**, then send them the link.
 
 ## Verify a download
 
@@ -157,3 +149,19 @@ wrong. Both the app and the hub write to `<OS config dir>/cohort/logs/`:
 
 `app.log` is the desktop app, `hub.log` is the server. Both are truncated on
 every launch, so a log covers exactly one run - copy it aside before restarting.
+
+## Running your own hub
+
+The app talks to Cohort's hub out of the box. To run your own - for a team,
+a company, or a vendor and its customers - unpack the hub tarball on a Linux
+machine everyone can reach:
+
+    tar -xzf cohort-hub_<version>_linux-x86_64.tar.gz
+    cd cohort-hub_<version>_linux-x86_64
+    sudo ./setup-and-host-cohort-hub.sh
+
+It installs what it needs, runs the hub as a service, publishes it over
+HTTPS with Tailscale Funnel (no router changes) or Caddy, and prints the
+address. `setting-up-and-hosting-a-cohort-hub.md`, beside it, explains every
+step. Then put that address in **Hub URL** behind the gear in the app.
+
